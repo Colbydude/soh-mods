@@ -1,0 +1,427 @@
+diff --git a/libultraship/libultraship/GameSettings.cpp b/libultraship/libultraship/GameSettings.cpp
+index c638468..3ee55dd 100644
+--- a/libultraship/libultraship/GameSettings.cpp
++++ b/libultraship/libultraship/GameSettings.cpp
+@@ -55,6 +55,9 @@ namespace Game {
+         Settings.enhancements.disable_lod = stob(Conf[EnhancementSection]["disable_lod"]);
+         CVar_SetS32(const_cast<char*>("gDisableLOD"), Settings.enhancements.disable_lod);
+
++        Settings.enhancements.dpad_shortcuts = stob(Conf[EnhancementSection]["dpad_shortcuts"]);
++        CVar_SetS32(const_cast<char*>("gDPadShortcuts"), Settings.enhancements.dpad_shortcuts);
++
+         Settings.enhancements.animated_pause_menu = stob(Conf[EnhancementSection]["animated_pause_menu"]);
+         CVar_SetS32(const_cast<char*>("gPauseLiveLink"), Settings.enhancements.animated_pause_menu);
+
+@@ -86,7 +89,7 @@ namespace Game {
+
+         Settings.controller.input_enabled = stob(Conf[ControllerSection]["input_enabled"]);
+         CVar_SetS32(const_cast<char*>("gInputEnabled"), Settings.controller.input_enabled);
+-
++
+         // Cheats
+         Settings.cheats.debug_mode = stob(Conf[CheatSection]["debug_mode"]);
+         CVar_SetS32(const_cast<char*>("gDebugEnabled"), Settings.cheats.debug_mode);
+@@ -139,7 +142,7 @@ namespace Game {
+         Conf[EnhancementSection]["fast_text"] = std::to_string(Settings.enhancements.fast_text);
+         Conf[EnhancementSection]["disable_lod"] = std::to_string(Settings.enhancements.disable_lod);
+         Conf[EnhancementSection]["animated_pause_menu"] = std::to_string(Settings.enhancements.animated_pause_menu);
+-
++        Conf[EnhancementSection]["dpad_shortcuts"] = std::to_string(Settings.enhancements.dpad_shortcuts);
+
+         // Controllers
+         Conf[ControllerSection]["gyro_sensitivity"] = std::to_string(Settings.controller.gyro_sensitivity);
+@@ -170,4 +173,4 @@ namespace Game {
+     void SetSeqPlayerVolume(SeqPlayers playerId, float volume) {
+         Audio_SetGameVolume(playerId, volume);
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/libultraship/libultraship/GameSettings.h b/libultraship/libultraship/GameSettings.h
+index be974fd..18b2fdb 100644
+--- a/libultraship/libultraship/GameSettings.h
++++ b/libultraship/libultraship/GameSettings.h
+@@ -23,6 +23,7 @@ struct SoHConfigType {
+         bool fast_text = false;
+         bool disable_lod = false;
+         bool animated_pause_menu = false;
++        bool dpad_shortcuts = false;
+     } enhancements;
+
+     // Controller
+diff --git a/libultraship/libultraship/SohImGuiImpl.cpp b/libultraship/libultraship/SohImGuiImpl.cpp
+index abc51a5..5a495e6 100644
+--- a/libultraship/libultraship/SohImGuiImpl.cpp
++++ b/libultraship/libultraship/SohImGuiImpl.cpp
+@@ -341,6 +341,11 @@ namespace SohImGui {
+                     needs_save = true;
+                 }
+
++                if (ImGui::Checkbox("DPad Shortcuts", &Game::Settings.enhancements.dpad_shortcuts)) {
++                    CVar_SetS32(const_cast<char*>("gDPadShortcuts"), Game::Settings.enhancements.dpad_shortcuts);
++                    needs_save = true;
++                }
++
+                 ImGui::Text("Graphics");
+                 ImGui::Separator();
+
+diff --git a/soh/soh.vcxproj b/soh/soh.vcxproj
+index 9d5b509..763f4ca 100644
+--- a/soh/soh.vcxproj
++++ b/soh/soh.vcxproj
+@@ -178,7 +178,9 @@
+   <ItemGroup>
+     <ClCompile Include="soh\Enhancements\bootcommands.c" />
+     <ClCompile Include="soh\Enhancements\debugconsole.cpp" />
++    <ClCompile Include="soh\Enhancements\dpad.c" />
+     <ClCompile Include="soh\Enhancements\gameconsole.c" />
++    <ClCompile Include="soh\Enhancements\gfx.c" />
+     <ClCompile Include="soh\GbiWrap.cpp" />
+     <ClCompile Include="soh\gu_pc.c" />
+     <ClCompile Include="soh\OTRGlobals.cpp" />
+@@ -922,6 +924,8 @@
+     <ClInclude Include="soh\Enhancements\bootcommands.h" />
+     <ClInclude Include="soh\Enhancements\cvar.h" />
+     <ClInclude Include="soh\Enhancements\debugconsole.h" />
++    <ClInclude Include="soh\Enhancements\dpad.h" />
++    <ClInclude Include="soh\Enhancements\gfx.h" />
+     <ClInclude Include="soh\gameconsole.h" />
+     <ClInclude Include="soh\OTRGlobals.h" />
+     <ClInclude Include="src\overlays\actors\ovl_Arms_Hook\z_arms_hook.h" />
+diff --git a/soh/soh.vcxproj.filters b/soh/soh.vcxproj.filters
+index 30ca9d4..9284023 100644
+--- a/soh/soh.vcxproj.filters
++++ b/soh/soh.vcxproj.filters
+@@ -2169,6 +2169,12 @@
+     <ClCompile Include="src\overlays\actors\ovl_Shot_Sun\z_shot_sun.c">
+       <Filter>Source Files\src\overlays\actors</Filter>
+     </ClCompile>
++    <ClCompile Include="soh\Enhancements\dpad.c">
++      <Filter>Source Files\soh\Enhancements</Filter>
++    </ClCompile>
++    <ClCompile Include="soh\Enhancements\gfx.c">
++      <Filter>Source Files\soh\Enhancements</Filter>
++    </ClCompile>
+   </ItemGroup>
+   <ItemGroup>
+     <ClInclude Include="src\overlays\actors\ovl_kaleido_scope\z_kaleido_scope.h">
+@@ -3710,6 +3716,12 @@
+     <ClInclude Include="resource.h">
+       <Filter>Header Files</Filter>
+     </ClInclude>
++    <ClInclude Include="soh\Enhancements\gfx.h">
++      <Filter>Header Files\soh\Enhancements</Filter>
++    </ClInclude>
++    <ClInclude Include="soh\Enhancements\dpad.h">
++      <Filter>Header Files\soh\Enhancements</Filter>
++    </ClInclude>
+   </ItemGroup>
+   <ItemGroup>
+     <None Include="include\macro.inc">
+diff --git a/soh/soh/Enhancements/dpad.c b/soh/soh/Enhancements/dpad.c
+new file mode 100644
+index 0000000..ab1ff31
+--- /dev/null
++++ b/soh/soh/Enhancements/dpad.c
+@@ -0,0 +1,117 @@
++
++#include "dpad.h"
++
++#include "textures/icon_item_static/icon_item_static.h"
++
++// Sprite/texture references.
++
++sprite_t sprDPad = { "__OTR__dpad", 32, 32, G_IM_FMT_IA, G_IM_SIZ_16b };                        // Need dpad.otr file!!!
++sprite_t sprFairyOcarina = { gFairyOcarinaIconTex, 32, 32, G_IM_FMT_RGBA, G_IM_SIZ_32b };
++sprite_t sprHoverBoots = { gHoverBootsIconTex, 32, 32, G_IM_FMT_RGBA, G_IM_SIZ_32b };
++sprite_t sprIronBoots = { gIronBootsIconTex, 32, 32, G_IM_FMT_RGBA, G_IM_SIZ_32b };
++sprite_t sprOcarinaOfTime = { gOcarinaofTimeIconTex, 32, 32, G_IM_FMT_RGBA, G_IM_SIZ_32b };
++
++/**
++ * @NOTE Need to use <value> - 1 for CHECK_OWNED_EQUIP vs CUR_EQUIP_VALUE (idk, some bitwise stuff I don't understand)
++ * So to check if the player has Iron Boots: CHECK_OWNED_EQUIP(EQUIP_BOOTS, 1)
++ * Then, to check if Iron Boots are equipped: CUR_EQUIP_VALUE(EQUIP_BOOTS) == 2
++ */
++
++/**
++ * Handles the DPad shortcuts, such as toggling iron/hover boots
++ * and playing the ocarina.
++ */
++void handle_dpad() {
++    Input* p1Input = &gGlobalCtx->state.input[0];
++    Player* player = GET_PLAYER(gGlobalCtx);
++
++    if (!CAN_USE_DPAD || !DISPLAY_DPAD || CVar_GetS32("gDPadShortcuts", 0) == 0)
++        return;
++
++    // Boots shortcuts.
++    if (LINK_AGE_IN_YEARS == YEARS_ADULT) {
++        // Toggle Iron Boots.
++        if (CHECK_BTN_ALL(p1Input->press.button, BTN_DLEFT) && CHECK_OWNED_EQUIP(EQUIP_BOOTS, 1)) {
++            Inventory_ChangeEquipment(EQUIP_BOOTS, CUR_EQUIP_VALUE(EQUIP_BOOTS) != 2 ? 2 : 1);
++            Player_SetEquipmentData(&gGlobalCtx, player);
++            Audio_PlaySoundGeneral(NA_SE_PL_CHANGE_ARMS, &D_801333D4, 4, &D_801333E0, &D_801333E0, &D_801333E8);
++        }
++
++        // Toggle Hover Boots.
++        if (CHECK_BTN_ALL(p1Input->press.button, BTN_DRIGHT) && CHECK_OWNED_EQUIP(EQUIP_BOOTS, 2)) {
++            Inventory_ChangeEquipment(EQUIP_BOOTS, CUR_EQUIP_VALUE(EQUIP_BOOTS) != 3 ? 3 : 1);
++            Player_SetEquipmentData(&gGlobalCtx, player);
++            Audio_PlaySoundGeneral(NA_SE_PL_CHANGE_ARMS, &D_801333D4, 4, &D_801333E0, &D_801333E0, &D_801333E8);
++        }
++    }
++
++    // Ocarina shortcut.
++    if (CHECK_BTN_ALL(p1Input->press.button, BTN_DDOWN) && CAN_USE_OCARINA) {
++        // Bad/undocumented function name :((((
++        // @TODO Maybe extract this to a nicely named utility?
++        func_80835F44(&gGlobalCtx, player, gSaveContext.inventory.items[0x07] == 0x07 ? ITEM_OCARINA_FAIRY : ITEM_OCARINA_TIME);
++    }
++}
++
++/**
++ * Draws the DPad UI.
++ */
++void draw_dpad() {
++    if (!DISPLAY_DPAD || CVar_GetS32("gDPadShortcuts", 0) == 0)
++        return;
++
++    OPEN_DISPS(gGlobalCtx->state.gfxCtx, "dpad.c", 60);
++    gDPPipeSync(OVERLAY_DISP++);
++    gDPSetCombineMode(OVERLAY_DISP++, G_CC_MODULATEIA_PRIM, G_CC_MODULATEIA_PRIM);
++
++    uint16_t alpha = gGlobalCtx->interfaceCtx.minimapAlpha;
++
++    if (alpha == 0xAA) {
++        alpha = 0xFF;
++    }
++
++    // Draw DPad Icon.
++    gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0xFF, 0xFF, 0xFF, alpha);
++    sprite_load(&sprDPad);
++    sprite_draw(&sprDPad, 271, 64, 16, 16);
++
++    if (alpha == 0xFF && !CAN_USE_DPAD) {
++        gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0xFF, 0xFF, 0xFF, 0x46);
++    }
++
++    // Draw Iron Boots
++    if (CHECK_OWNED_EQUIP(EQUIP_BOOTS, 1) && LINK_AGE_IN_YEARS != YEARS_CHILD) {
++        sprite_load(&sprIronBoots);
++
++        if (CUR_EQUIP_VALUE(EQUIP_BOOTS) == 2) {
++            sprite_draw(&sprIronBoots, 258, 64, 16, 16);
++        } else {
++            sprite_draw(&sprIronBoots, 260, 66, 12, 12);
++        }
++    }
++
++    // Draw Hover Boots
++    if (CHECK_OWNED_EQUIP(EQUIP_BOOTS, 2) && LINK_AGE_IN_YEARS != YEARS_CHILD) {
++        sprite_load(&sprHoverBoots);
++
++        if (CUR_EQUIP_VALUE(EQUIP_BOOTS) == 3) {
++            sprite_draw(&sprHoverBoots, 283, 64, 16, 16);
++        } else {
++            sprite_draw(&sprHoverBoots, 285, 66, 12, 12);
++        }
++    }
++
++    // Draw Ocarina
++    if (gSaveContext.inventory.items[0x07] == 0x07 || gSaveContext.inventory.items[0x07] == 0x08) {
++        if (alpha == 0xFF && !CAN_USE_OCARINA) {
++            gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0xFF, 0xFF, 0xFF, 0x46);
++        }
++
++        sprite_load(gSaveContext.inventory.items[0x07] == 0x07 ? &sprFairyOcarina : &sprOcarinaOfTime);
++        sprite_draw(&sprFairyOcarina, 273, 77, 12, 12); // Doesn't matter which sprite you use here since they're the same size.
++    }
++
++    gDPPipeSync(OVERLAY_DISP++);
++
++    CLOSE_DISPS(gGlobalCtx->state.gfxCtx, "dpad.c", 113);
++}
+diff --git a/soh/soh/Enhancements/dpad.h b/soh/soh/Enhancements/dpad.h
+new file mode 100644
+index 0000000..7f1c772
+--- /dev/null
++++ b/soh/soh/Enhancements/dpad.h
+@@ -0,0 +1,50 @@
++#ifndef DPAD_ENHANCEMENT_H
++#define DPAD_ENHANCEMENT_H
++
++#include "gfx.h"
++#include "global.h"
++#include "z64.h"
++
++extern GlobalContext* gGlobalCtx;
++
++// Flags that block use of DPad from Link State 1
++// https://wiki.cloudmodding.com/oot/Player_actor#Link_State_I
++#define BLOCK_DPAD          (0x00000001 | \
++	                         0x00000002 | \
++                             0x00000080 | \
++                             0x00000400 | \
++                             0x10000000 | \
++                             0x20000000)
++
++// Flags that block the use of Ocarina from Link State 1
++#define BLOCK_OCARINA       (0x00800000 | \
++                             0x00000800 | \
++                             0x00200000 | \
++                             0x08000000)
++
++#define DISPLAY_DPAD        ((CHECK_OWNED_EQUIP(EQUIP_BOOTS, 1) || CHECK_OWNED_EQUIP(EQUIP_BOOTS, 2)) && \
++                            (LINK_AGE_IN_YEARS == YEARS_ADULT) || gSaveContext.inventory.items[0x07] == 0x07 || gSaveContext.inventory.items[0x07] == 0x08)
++
++#define CAN_USE_DPAD        (((GET_PLAYER(gGlobalCtx)->stateFlags1 & BLOCK_DPAD) == 0) && \
++                            ((uint32_t)gGlobalCtx->state.destroy == gGameStateOverlayTable[3].destroy) && \
++                            (gSaveContext.gameMode == 0))
++                            //((z64_event_state_1 & 0x20) == 0)) // @NOTE Figure out what this relates to? Pretty sure it's a flag for scene transition.
++                                                                 // Watched RAM address 0x800EF1B0 in BizHawk and it only ever flipped to 0x20 during
++                                                                 // scene transitions from my testing. BLOCK_DPAD should take care of this and this check
++                                                                 // may just be redundant in the randomizer repo.
++
++#define CAN_USE_OCARINA     (gGlobalCtx->pauseCtx.state == 0 && \
++                            (gSaveContext.inventory.items[0x07] == 0x07 || gSaveContext.inventory.items[0x07] == 0x08) && \
++                            !gGlobalCtx->interfaceCtx.restrictions.ocarina && \
++                            ((GET_PLAYER(gGlobalCtx)->stateFlags1 & BLOCK_OCARINA) == 0))
++
++sprite_t sprDPad;
++sprite_t sprFairyOcarina;
++sprite_t sprHoverBoots;
++sprite_t sprIronBoots;
++sprite_t sprOcarinaOfTime;
++
++void handle_dpad();
++void draw_dpad();
++
++#endif
+diff --git a/soh/soh/Enhancements/gfx.c b/soh/soh/Enhancements/gfx.c
+new file mode 100644
+index 0000000..822ea33
+--- /dev/null
++++ b/soh/soh/Enhancements/gfx.c
+@@ -0,0 +1,63 @@
++#include "gfx.h"
++
++#include "global.h"
++#include "z64.h"
++
++extern GlobalContext* gGlobalCtx;
++
++/**
++ * Simple wrapper to load a texture to be drawn.
++ */
++void sprite_load(sprite_t* sprite) {
++    OPEN_DISPS(gGlobalCtx->state.gfxCtx, "gfx.c", 12);
++
++    if (sprite->im_siz == G_IM_SIZ_16b) {
++        gDPLoadTextureBlock(
++            OVERLAY_DISP++,
++            sprite->tex,
++            sprite->im_fmt,
++            G_IM_SIZ_16b, // @TEMP until I figure out how to use sprite->im_siz
++            sprite->width, sprite->height,
++            0,
++            G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP,
++            G_TX_NOMASK, G_TX_NOMASK,
++            G_TX_NOLOD, G_TX_NOLOD
++        );
++    } else {
++        gDPLoadTextureBlock(
++            OVERLAY_DISP++,
++            sprite->tex,
++            sprite->im_fmt,
++            G_IM_SIZ_32b, // @TEMP until I figure out how to use sprite->im_siz
++            sprite->width, sprite->height,
++            0,
++            G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMIRROR | G_TX_WRAP,
++            G_TX_NOMASK, G_TX_NOMASK,
++            G_TX_NOLOD, G_TX_NOLOD
++        );
++    }
++
++    CLOSE_DISPS(gGlobalCtx->state.gfxCtx, "gfx.c", 40);
++}
++
++/**
++ * Simple wrapper to draw a sprite/texture on the screen.
++ * sprite_load needs to be ran right before this.
++ */
++void sprite_draw(sprite_t* sprite, int left, int top, int width, int height) {
++    int width_factor = (1 << 10) * sprite->width / width;
++    int height_factor = (1 << 10) * sprite->height / height;
++
++    OPEN_DISPS(gGlobalCtx->state.gfxCtx, "gfx.c", 51);
++
++    gSPWideTextureRectangle(
++        OVERLAY_DISP++,
++        OTRGetRectDimensionFromRightEdge(left) << 2, top << 2,
++        (OTRGetRectDimensionFromRightEdge(left) + width) << 2, (top + height) << 2,
++        G_TX_RENDERTILE,
++        0, 0,
++        width_factor, height_factor
++    );
++
++    CLOSE_DISPS(gGlobalCtx->state.gfxCtx, "gfx.c", 62);
++}
+diff --git a/soh/soh/Enhancements/gfx.h b/soh/soh/Enhancements/gfx.h
+new file mode 100644
+index 0000000..e4fb27c
+--- /dev/null
++++ b/soh/soh/Enhancements/gfx.h
+@@ -0,0 +1,17 @@
++#ifndef GFX_ENHANCEMENT_H
++#define GFX_EHHANCEMENT_H
++
++#include "z64.h"
++
++typedef struct {
++    void *tex;
++    uint16_t width;
++    uint16_t height;
++    uint8_t im_fmt;
++    uint8_t im_siz;
++} sprite_t;
++
++void sprite_load(sprite_t *sprite);
++void sprite_draw(sprite_t *sprite, int left, int top, int width, int height);
++
++#endif
+diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+index 8bce65a..22509db 100644
+--- a/soh/src/code/z_parameter.c
++++ b/soh/src/code/z_parameter.c
+@@ -3,6 +3,7 @@
+ #include "textures/parameter_static/parameter_static.h"
+ #include "textures/do_action_static/do_action_static.h"
+ #include "textures/icon_item_static/icon_item_static.h"
++#include <soh/Enhancements/dpad.h>
+
+ #ifdef _MSC_VER
+ #include <stdlib.h>
+@@ -3272,6 +3273,7 @@ void Interface_Draw(GlobalContext* globalCtx) {
+         func_80094520(globalCtx->state.gfxCtx);
+
+         Interface_DrawItemButtons(globalCtx);
++        draw_dpad();
+
+         gDPPipeSync(OVERLAY_DISP++);
+         gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 255, 255, 255, interfaceCtx->bAlpha);
+@@ -3899,7 +3901,7 @@ void Interface_Draw(GlobalContext* globalCtx) {
+
+                 for (svar1 = 0; svar1 < 5; svar1++) {
+                     // clang-format off
+-                    svar5 = OTRGetRectDimensionFromLeftEdge(gSaveContext.timerX[svar6]);
++                    svar5 = OTRGetRectDimensionFromLeftEdge(gSaveContext.timerX[svar6]);
+                     OVERLAY_DISP = Gfx_TextureI8(OVERLAY_DISP, digitTextures[timerDigits[svar1]], 8, 16,
+                                       svar5 + timerDigitLeftPos[svar1],
+                                       svar2 = gSaveContext.timerY[svar6], digitWidth[svar1], VREG(42), VREG(43) << 1,
+@@ -4294,4 +4296,6 @@ void Interface_Update(GlobalContext* globalCtx) {
+             gSaveContext.sunsSongState = SUNSSONG_SPECIAL;
+         }
+     }
++
++    handle_dpad();
+ }
