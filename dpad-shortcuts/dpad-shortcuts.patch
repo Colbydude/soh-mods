@@ -12,15 +12,6 @@ index c638468..3ee55dd 100644
          Settings.enhancements.animated_pause_menu = stob(Conf[EnhancementSection]["animated_pause_menu"]);
          CVar_SetS32(const_cast<char*>("gPauseLiveLink"), Settings.enhancements.animated_pause_menu);
 
-@@ -86,7 +89,7 @@ namespace Game {
-
-         Settings.controller.input_enabled = stob(Conf[ControllerSection]["input_enabled"]);
-         CVar_SetS32(const_cast<char*>("gInputEnabled"), Settings.controller.input_enabled);
--
-+
-         // Cheats
-         Settings.cheats.debug_mode = stob(Conf[CheatSection]["debug_mode"]);
-         CVar_SetS32(const_cast<char*>("gDebugEnabled"), Settings.cheats.debug_mode);
 @@ -139,7 +142,7 @@ namespace Game {
          Conf[EnhancementSection]["fast_text"] = std::to_string(Settings.enhancements.fast_text);
          Conf[EnhancementSection]["disable_lod"] = std::to_string(Settings.enhancements.disable_lod);
@@ -409,15 +400,6 @@ index 8bce65a..22509db 100644
 
          gDPPipeSync(OVERLAY_DISP++);
          gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 255, 255, 255, interfaceCtx->bAlpha);
-@@ -3899,7 +3901,7 @@ void Interface_Draw(GlobalContext* globalCtx) {
-
-                 for (svar1 = 0; svar1 < 5; svar1++) {
-                     // clang-format off
--                    svar5 = OTRGetRectDimensionFromLeftEdge(gSaveContext.timerX[svar6]);
-+                    svar5 = OTRGetRectDimensionFromLeftEdge(gSaveContext.timerX[svar6]);
-                     OVERLAY_DISP = Gfx_TextureI8(OVERLAY_DISP, digitTextures[timerDigits[svar1]], 8, 16,
-                                       svar5 + timerDigitLeftPos[svar1],
-                                       svar2 = gSaveContext.timerY[svar6], digitWidth[svar1], VREG(42), VREG(43) << 1,
 @@ -4294,4 +4296,6 @@ void Interface_Update(GlobalContext* globalCtx) {
              gSaveContext.sunsSongState = SUNSSONG_SPECIAL;
          }
