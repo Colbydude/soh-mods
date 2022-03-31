@@ -18,7 +18,7 @@ git apply --reject --whitespace=fix dpad-shortcuts.patch
 
 - You should see the following messages on a successful patch:
   ![Successful Patch](doc/successful-patch.png?raw=true "Successful Patch")
-- ❗Download [dpad.otr](https://github.com/Colbydude/soh-mods/blob/main/dpad-shortcuts/dpad.otr?raw=true) and place it in the same directory as `soh.exe`❗
+- ❗Download [dpad.otr](https://github.com/Colbydude/soh-mods/blob/main/dpad-shortcuts/dpad.otr?raw=true) and place it in the same directory as `soh.exe`, **if you don't, the game will crash**❗
 - Launch the game and toggle DPad Shortcuts from the Ehancements menu!
 
 ### Credits
