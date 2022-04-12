@@ -8,7 +8,7 @@ This mod adds the ability to toggle boots and use the Ocarina from the DPad, ori
 
 ## Installation
 
-- Clone the [Shipwright](https://github.com/HarbourMasters/Shipwright) repo from `develop`, the latest tested commit is [c80f9fbd57d2ae90fa87a1e34d906a265de20e55](https://github.com/HarbourMasters/Shipwright/tree/c80f9fbd57d2ae90fa87a1e34d906a265de20e55)
+- Clone the [Shipwright](https://github.com/HarbourMasters/Shipwright) repo from `develop`, the latest tested commit is [03a5c7ed29db889344a8275c4c0a8c7ae1480779](https://github.com/HarbourMasters/Shipwright/tree/03a5c7ed29db889344a8275c4c0a8c7ae1480779)
 - Download [dpad-shortcuts.patch](https://github.com/Colbydude/soh-mods/blob/main/dpad-shortcuts/dpad-shortcuts.patch?raw=true) and place it in the root directory of your cloned `Shipwright`.
 - Apply the patch with:
 

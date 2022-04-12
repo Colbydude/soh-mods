@@ -1,43 +1,36 @@
 diff --git a/libultraship/libultraship/GameSettings.cpp b/libultraship/libultraship/GameSettings.cpp
-index 1186fa2..6a3bfbe 100644
+index c3294d9..e4104f7 100644
 --- a/libultraship/libultraship/GameSettings.cpp
 +++ b/libultraship/libultraship/GameSettings.cpp
 @@ -55,6 +55,9 @@ namespace Game {
          Settings.enhancements.disable_lod = stob(Conf[EnhancementSection]["disable_lod"]);
-         CVar_SetS32(const_cast<char*>("gDisableLOD"), Settings.enhancements.disable_lod);
-
+         CVar_SetS32("gDisableLOD", Settings.enhancements.disable_lod);
+ 
 +        Settings.enhancements.dpad_shortcuts = stob(Conf[EnhancementSection]["dpad_shortcuts"]);
-+        CVar_SetS32(const_cast<char*>("gDPadShortcuts"), Settings.enhancements.dpad_shortcuts);
++        CVar_SetS32("gDPadShortcuts", Settings.enhancements.dpad_shortcuts);
 +
          Settings.enhancements.animated_pause_menu = stob(Conf[EnhancementSection]["animated_pause_menu"]);
-         CVar_SetS32(const_cast<char*>("gPauseLiveLink"), Settings.enhancements.animated_pause_menu);
-
-@@ -89,7 +92,7 @@ namespace Game {
-
-         Settings.controller.input_enabled = stob(Conf[ControllerSection]["input_enabled"]);
-         CVar_SetS32(const_cast<char*>("gInputEnabled"), Settings.controller.input_enabled);
--
+         CVar_SetS32("gPauseLiveLink", Settings.enhancements.animated_pause_menu);
+ 
+@@ -95,7 +98,7 @@ namespace Game {
+ 
+         Settings.controller.dpad_ocarina_text = stob(Conf[ControllerSection]["dpad_ocarina_text"]);
+         CVar_SetS32("gDpadOcarinaText", Settings.controller.dpad_ocarina_text);
+-        
 +
          // Cheats
          Settings.cheats.debug_mode = stob(Conf[CheatSection]["debug_mode"]);
-         CVar_SetS32(const_cast<char*>("gDebugEnabled"), Settings.cheats.debug_mode);
-@@ -143,6 +146,7 @@ namespace Game {
+         CVar_SetS32("gDebugEnabled", Settings.cheats.debug_mode);
+@@ -149,6 +152,7 @@ namespace Game {
          Conf[EnhancementSection]["disable_lod"] = std::to_string(Settings.enhancements.disable_lod);
          Conf[EnhancementSection]["animated_pause_menu"] = std::to_string(Settings.enhancements.animated_pause_menu);
          Conf[EnhancementSection]["minimal_ui"] = std::to_string(Settings.enhancements.minimal_ui);
 +        Conf[EnhancementSection]["dpad_shortcuts"] = std::to_string(Settings.enhancements.dpad_shortcuts);
-
+ 
          // Controllers
          Conf[ControllerSection]["gyro_sensitivity"] = std::to_string(Settings.controller.gyro_sensitivity);
-@@ -173,4 +177,4 @@ namespace Game {
-     void SetSeqPlayerVolume(SeqPlayers playerId, float volume) {
-         Audio_SetGameVolume(playerId, volume);
-     }
--}
-\ No newline at end of file
-+}
 diff --git a/libultraship/libultraship/GameSettings.h b/libultraship/libultraship/GameSettings.h
-index 4f9bb4c..896a581 100644
+index 8e1293c..d94bdb6 100644
 --- a/libultraship/libultraship/GameSettings.h
 +++ b/libultraship/libultraship/GameSettings.h
 @@ -24,6 +24,7 @@ struct SoHConfigType {
@@ -46,16 +39,16 @@ index 4f9bb4c..896a581 100644
          bool minimal_ui = false;
 +        bool dpad_shortcuts = false;
      } enhancements;
-
+ 
      // Controller
 diff --git a/libultraship/libultraship/SohImGuiImpl.cpp b/libultraship/libultraship/SohImGuiImpl.cpp
-index d95a27d..9102c8a 100644
+index 7bdf485..bc218ef 100644
 --- a/libultraship/libultraship/SohImGuiImpl.cpp
 +++ b/libultraship/libultraship/SohImGuiImpl.cpp
-@@ -346,6 +346,11 @@ namespace SohImGui {
+@@ -383,6 +383,11 @@ namespace SohImGui {
                      needs_save = true;
                  }
-
+ 
 +                if (ImGui::Checkbox("DPad Shortcuts", &Game::Settings.enhancements.dpad_shortcuts)) {
 +                    CVar_SetS32(const_cast<char*>("gDPadShortcuts"), Game::Settings.enhancements.dpad_shortcuts);
 +                    needs_save = true;
@@ -63,93 +56,100 @@ index d95a27d..9102c8a 100644
 +
                  ImGui::Text("Graphics");
                  ImGui::Separator();
-
-@@ -369,10 +374,10 @@ namespace SohImGui {
+ 
+@@ -406,10 +411,10 @@ namespace SohImGui {
              if (ImGui::BeginMenu("Developer Tools")) {
                  HOOK(ImGui::MenuItem("Stats", nullptr, &Game::Settings.debug.soh));
                  HOOK(ImGui::MenuItem("Console", nullptr, &console->opened));
--
+-                
 +
                  ImGui::Text("Debug");
                  ImGui::Separator();
--
+-                
 +
                  if (ImGui::Checkbox("Debug Mode", &Game::Settings.cheats.debug_mode)) {
-                     CVar_SetS32(const_cast<char*>("gDebugEnabled"), Game::Settings.cheats.debug_mode);
+                     CVar_SetS32("gDebugEnabled", Game::Settings.cheats.debug_mode);
                      needs_save = true;
-@@ -380,7 +385,7 @@ namespace SohImGui {
-
+@@ -417,7 +422,7 @@ namespace SohImGui {
+ 
                  ImGui::EndMenu();
              }
--
+-            
 +
              if (ImGui::BeginMenu("Cheats")) {
                  if (ImGui::Checkbox("Infinite Money", &Game::Settings.cheats.infinite_money)) {
-                     CVar_SetS32(const_cast<char*>("gInfiniteMoney"), Game::Settings.cheats.infinite_money);
-@@ -401,22 +406,22 @@ namespace SohImGui {
-                     CVar_SetS32(const_cast<char*>("gInfiniteMagic"), Game::Settings.cheats.infinite_magic);
+                     CVar_SetS32("gInfiniteMoney", Game::Settings.cheats.infinite_money);
+@@ -438,22 +443,22 @@ namespace SohImGui {
+                     CVar_SetS32("gInfiniteMagic", Game::Settings.cheats.infinite_magic);
                      needs_save = true;
                  }
--
+-                
 +
                  if (ImGui::Checkbox("No Clip", &Game::Settings.cheats.no_clip)) {
-                     CVar_SetS32(const_cast<char*>("gNoClip"), Game::Settings.cheats.no_clip);
+                     CVar_SetS32("gNoClip", Game::Settings.cheats.no_clip);
                      needs_save = true;
                  }
--
+-                
 +
                  if (ImGui::Checkbox("Climb Everything", &Game::Settings.cheats.climb_everything)) {
-                     CVar_SetS32(const_cast<char*>("gClimbEverything"), Game::Settings.cheats.climb_everything);
+                     CVar_SetS32("gClimbEverything", Game::Settings.cheats.climb_everything);
                      needs_save = true;
                  }
--
+-                
 +
                  if (ImGui::Checkbox("Moon Jump on L", &Game::Settings.cheats.moon_jump_on_l)) {
-                     CVar_SetS32(const_cast<char*>("gMoonJumpOnL"), Game::Settings.cheats.moon_jump_on_l);
+                     CVar_SetS32("gMoonJumpOnL", Game::Settings.cheats.moon_jump_on_l);
                      needs_save = true;
                  }
--
+-                
 +
                  if (ImGui::Checkbox("Super Tunic", &Game::Settings.cheats.super_tunic)) {
-                     CVar_SetS32(const_cast<char*>("gSuperTunic"), Game::Settings.cheats.super_tunic);
+                     CVar_SetS32("gSuperTunic", Game::Settings.cheats.super_tunic);
                      needs_save = true;
-@@ -538,4 +543,4 @@ namespace SohImGui {
-     void BindCmd(const std::string& cmd, CommandEntry entry) {
-         console->Commands[cmd] = std::move(entry);
+@@ -609,4 +614,4 @@ namespace SohImGui {
+     ImTextureID GetTextureByName(const std::string& name) {
+         return GetTextureByID(DefaultAssets[name]->textureId);
      }
 -}
 \ No newline at end of file
 +}
 diff --git a/soh/soh.vcxproj b/soh/soh.vcxproj
-index aa6dee3..835e9b6 100644
+index 5560bde..5d087a5 100644
 --- a/soh/soh.vcxproj
 +++ b/soh/soh.vcxproj
-@@ -178,7 +178,9 @@
-   <ItemGroup>
-     <ClCompile Include="soh\Enhancements\bootcommands.c" />
+@@ -180,7 +180,9 @@
      <ClCompile Include="soh\Enhancements\debugconsole.cpp" />
+     <ClCompile Include="soh\Enhancements\debugger\debugger.cpp" />
+     <ClCompile Include="soh\Enhancements\debugger\debugSaveEditor.cpp" />
 +    <ClCompile Include="soh\Enhancements\dpad.c" />
      <ClCompile Include="soh\Enhancements\gameconsole.c" />
 +    <ClCompile Include="soh\Enhancements\gfx.c" />
      <ClCompile Include="soh\GbiWrap.cpp" />
      <ClCompile Include="soh\gu_pc.c" />
      <ClCompile Include="soh\OTRGlobals.cpp" />
-@@ -922,6 +924,8 @@
-     <ClInclude Include="soh\Enhancements\bootcommands.h" />
-     <ClInclude Include="soh\Enhancements\cvar.h" />
+@@ -926,6 +928,8 @@
      <ClInclude Include="soh\Enhancements\debugconsole.h" />
+     <ClInclude Include="soh\Enhancements\debugger\debugger.h" />
+     <ClInclude Include="soh\Enhancements\debugger\debugSaveEditor.h" />
 +    <ClInclude Include="soh\Enhancements\dpad.h" />
 +    <ClInclude Include="soh\Enhancements\gfx.h" />
      <ClInclude Include="soh\gameconsole.h" />
      <ClInclude Include="soh\OTRGlobals.h" />
      <ClInclude Include="src\overlays\actors\ovl_Arms_Hook\z_arms_hook.h" />
+@@ -1405,4 +1409,4 @@
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+   <ImportGroup Label="ExtensionTargets">
+   </ImportGroup>
+-</Project>
+\ No newline at end of file
++</Project>
 diff --git a/soh/soh.vcxproj.filters b/soh/soh.vcxproj.filters
-index 30ca9d4..9284023 100644
+index de9ad6f..c1e1531 100644
 --- a/soh/soh.vcxproj.filters
 +++ b/soh/soh.vcxproj.filters
-@@ -2169,6 +2169,12 @@
-     <ClCompile Include="src\overlays\actors\ovl_Shot_Sun\z_shot_sun.c">
-       <Filter>Source Files\src\overlays\actors</Filter>
+@@ -2181,6 +2181,12 @@
+     <ClCompile Include="soh\Enhancements\debugger\debugSaveEditor.cpp">
+       <Filter>Source Files\soh\Enhancements\debugger</Filter>
      </ClCompile>
 +    <ClCompile Include="soh\Enhancements\dpad.c">
 +      <Filter>Source Files\soh\Enhancements</Filter>
@@ -160,22 +160,36 @@ index 30ca9d4..9284023 100644
    </ItemGroup>
    <ItemGroup>
      <ClInclude Include="src\overlays\actors\ovl_kaleido_scope\z_kaleido_scope.h">
-@@ -3710,6 +3716,12 @@
+@@ -3722,11 +3728,19 @@
      <ClInclude Include="resource.h">
        <Filter>Header Files</Filter>
      </ClInclude>
++<<<<<<< HEAD
 +    <ClInclude Include="soh\Enhancements\gfx.h">
 +      <Filter>Header Files\soh\Enhancements</Filter>
 +    </ClInclude>
 +    <ClInclude Include="soh\Enhancements\dpad.h">
 +      <Filter>Header Files\soh\Enhancements</Filter>
-+    </ClInclude>
++=======
+     <ClInclude Include="soh\Enhancements\debugger\debugger.h">
+       <Filter>Header Files\soh\Enhancements\debugger</Filter>
+     </ClInclude>
+     <ClInclude Include="soh\Enhancements\debugger\debugSaveEditor.h">
+       <Filter>Header Files\soh\Enhancements\debugger</Filter>
++>>>>>>> develop
+     </ClInclude>
    </ItemGroup>
    <ItemGroup>
-     <None Include="include\macro.inc">
+@@ -3744,4 +3758,4 @@
+       <Filter>Resource Files</Filter>
+     </Image>
+   </ItemGroup>
+-</Project>
+\ No newline at end of file
++</Project>
 diff --git a/soh/soh/Enhancements/dpad.c b/soh/soh/Enhancements/dpad.c
 new file mode 100644
-index 0000000..ab1ff31
+index 0000000..69ea6f8
 --- /dev/null
 +++ b/soh/soh/Enhancements/dpad.c
 @@ -0,0 +1,117 @@
@@ -230,7 +244,7 @@ index 0000000..ab1ff31
 +    if (CHECK_BTN_ALL(p1Input->press.button, BTN_DDOWN) && CAN_USE_OCARINA) {
 +        // Bad/undocumented function name :((((
 +        // @TODO Maybe extract this to a nicely named utility?
-+        func_80835F44(&gGlobalCtx, player, gSaveContext.inventory.items[0x07] == 0x07 ? ITEM_OCARINA_FAIRY : ITEM_OCARINA_TIME);
++        func_80835F44(&gGlobalCtx, player, INV_CONTENT(ITEM_OCARINA_FAIRY) == ITEM_OCARINA_FAIRY ? ITEM_OCARINA_FAIRY : ITEM_OCARINA_TIME);
 +    }
 +}
 +
@@ -283,12 +297,12 @@ index 0000000..ab1ff31
 +    }
 +
 +    // Draw Ocarina
-+    if (gSaveContext.inventory.items[0x07] == 0x07 || gSaveContext.inventory.items[0x07] == 0x08) {
++    if (INV_CONTENT(ITEM_OCARINA_FAIRY) == ITEM_OCARINA_FAIRY || INV_CONTENT(ITEM_OCARINA_FAIRY) == ITEM_OCARINA_TIME) {
 +        if (alpha == 0xFF && !CAN_USE_OCARINA) {
 +            gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0xFF, 0xFF, 0xFF, 0x46);
 +        }
 +
-+        sprite_load(gSaveContext.inventory.items[0x07] == 0x07 ? &sprFairyOcarina : &sprOcarinaOfTime);
++        sprite_load(INV_CONTENT(ITEM_OCARINA_FAIRY) == ITEM_OCARINA_FAIRY ? &sprFairyOcarina : &sprOcarinaOfTime);
 +        sprite_draw(&sprFairyOcarina, 273, 77, 12, 12); // Doesn't matter which sprite you use here since they're the same size.
 +    }
 +
@@ -298,7 +312,7 @@ index 0000000..ab1ff31
 +}
 diff --git a/soh/soh/Enhancements/dpad.h b/soh/soh/Enhancements/dpad.h
 new file mode 100644
-index 0000000..7f1c772
+index 0000000..9a97a17
 --- /dev/null
 +++ b/soh/soh/Enhancements/dpad.h
 @@ -0,0 +1,50 @@
@@ -327,7 +341,7 @@ index 0000000..7f1c772
 +                             0x08000000)
 +
 +#define DISPLAY_DPAD        ((CHECK_OWNED_EQUIP(EQUIP_BOOTS, 1) || CHECK_OWNED_EQUIP(EQUIP_BOOTS, 2)) && \
-+                            (LINK_AGE_IN_YEARS == YEARS_ADULT) || gSaveContext.inventory.items[0x07] == 0x07 || gSaveContext.inventory.items[0x07] == 0x08)
++                            (LINK_AGE_IN_YEARS == YEARS_ADULT) || INV_CONTENT(ITEM_OCARINA_FAIRY) == ITEM_OCARINA_FAIRY || INV_CONTENT(ITEM_OCARINA_FAIRY) == ITEM_OCARINA_TIME)
 +
 +#define CAN_USE_DPAD        (((GET_PLAYER(gGlobalCtx)->stateFlags1 & BLOCK_DPAD) == 0) && \
 +                            ((uint32_t)gGlobalCtx->state.destroy == gGameStateOverlayTable[3].destroy) && \
@@ -338,7 +352,7 @@ index 0000000..7f1c772
 +                                                                 // may just be redundant in the randomizer repo.
 +
 +#define CAN_USE_OCARINA     (gGlobalCtx->pauseCtx.state == 0 && \
-+                            (gSaveContext.inventory.items[0x07] == 0x07 || gSaveContext.inventory.items[0x07] == 0x08) && \
++                            (INV_CONTENT(ITEM_OCARINA_FAIRY) == ITEM_OCARINA_FAIRY || INV_CONTENT(ITEM_OCARINA_FAIRY) == ITEM_OCARINA_TIME) && \
 +                            !gGlobalCtx->interfaceCtx.restrictions.ocarina && \
 +                            ((GET_PLAYER(gGlobalCtx)->stateFlags1 & BLOCK_OCARINA) == 0))
 +
@@ -453,14 +467,14 @@ index 1653cda..0fbffb0 100644
  #include "textures/do_action_static/do_action_static.h"
  #include "textures/icon_item_static/icon_item_static.h"
 +#include <soh/Enhancements/dpad.h>
-
+ 
  #ifdef _MSC_VER
  #include <stdlib.h>
 @@ -2793,7 +2794,7 @@ void Interface_DrawItemButtons(GlobalContext* globalCtx) {
              gDPPipeSync(OVERLAY_DISP++);
              gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 120, 120, 120, interfaceCtx->startAlpha);
              gSPWideTextureRectangle(OVERLAY_DISP++, OTRGetRectDimensionFromRightEdge(startButtonLeftPos[gSaveContext.language]) << 2, 68,
--                                (OTRGetRectDimensionFromRightEdge(startButtonLeftPos[gSaveContext.language]) + 22) << 2, 156,
+-                                (OTRGetRectDimensionFromRightEdge(startButtonLeftPos[gSaveContext.language]) + 22) << 2, 156, 
 +                                (OTRGetRectDimensionFromRightEdge(startButtonLeftPos[gSaveContext.language]) + 22) << 2, 156,
                                  G_TX_RENDERTILE, 0, 0, 1462, 1462);
              gDPPipeSync(OVERLAY_DISP++);
@@ -468,57 +482,57 @@ index 1653cda..0fbffb0 100644
 @@ -2874,7 +2875,7 @@ void Interface_DrawItemButtons(GlobalContext* globalCtx) {
                                  interfaceCtx->cRightAlpha);
              }
-
--            OVERLAY_DISP = Gfx_TextureIA8(OVERLAY_DISP, ((u8*)gButtonBackgroundTex), 32, 32,
+ 
+-            OVERLAY_DISP = Gfx_TextureIA8(OVERLAY_DISP, ((u8*)gButtonBackgroundTex), 32, 32, 
 +            OVERLAY_DISP = Gfx_TextureIA8(OVERLAY_DISP, ((u8*)gButtonBackgroundTex), 32, 32,
                                            OTRGetRectDimensionFromRightEdge(R_ITEM_BTN_X(temp)), R_ITEM_BTN_Y(temp), R_ITEM_BTN_WIDTH(temp),
                                            R_ITEM_BTN_WIDTH(temp), R_ITEM_BTN_DD(temp) << 1, R_ITEM_BTN_DD(temp) << 1);
-
+ 
 @@ -2959,7 +2960,7 @@ void Interface_DrawAmmoCount(GlobalContext* globalCtx, s16 button, s16 alpha) {
          }
-
+ 
          if (i != 0) {
--            OVERLAY_DISP = Gfx_TextureIA8(OVERLAY_DISP, (u8*)_gAmmoDigit0Tex[i], 8, 8,
+-            OVERLAY_DISP = Gfx_TextureIA8(OVERLAY_DISP, (u8*)_gAmmoDigit0Tex[i], 8, 8, 
 +            OVERLAY_DISP = Gfx_TextureIA8(OVERLAY_DISP, (u8*)_gAmmoDigit0Tex[i], 8, 8,
                                            OTRGetRectDimensionFromRightEdge(R_ITEM_AMMO_X(button)), R_ITEM_AMMO_Y(button), 8, 8, 1 << 10, 1 << 10);
          }
-
+ 
 @@ -3265,7 +3266,7 @@ void Interface_Draw(GlobalContext* globalCtx) {
                      Gfx_TextureI8(OVERLAY_DISP, ((u8*)digitTextures[interfaceCtx->counterDigits[svar2]]), 8, 16,
                          OTRGetRectDimensionFromLeftEdge(svar3), 206, 8, 16, 1 << 10, 1 << 10);
              }
--        }
+-        } 
 +        }
          else {
              // Make sure item counts have black backgrounds
              gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 0, 0, 0, interfaceCtx->magicAlpha);
 @@ -3286,6 +3287,7 @@ void Interface_Draw(GlobalContext* globalCtx) {
-
+ 
          if (fullUi) {
              Interface_DrawItemButtons(globalCtx);
 +            draw_dpad();
          }
-
+ 
          gDPPipeSync(OVERLAY_DISP++);
 @@ -3302,11 +3304,11 @@ void Interface_Draw(GlobalContext* globalCtx) {
-
+ 
                  if ((player->stateFlags1 & 0x00800000) || (globalCtx->shootingGalleryStatus > 1) ||
                      ((globalCtx->sceneNum == SCENE_BOWLING) && Flags_GetSwitch(globalCtx, 0x38))) {
--
+-                    
 +
                      if (!fullUi) {
                          Interface_DrawItemIconTexture(globalCtx, gItemIcons[gSaveContext.equips.buttonItems[0]], 0);
                      }
--
+-                    
 +
                      gDPPipeSync(OVERLAY_DISP++);
                      gDPSetCombineLERP(OVERLAY_DISP++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE,
                                        0, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
 @@ -3923,7 +3925,7 @@ void Interface_Draw(GlobalContext* globalCtx) {
-
+ 
                  for (svar1 = 0; svar1 < 5; svar1++) {
                      // clang-format off
--                    svar5 = OTRGetRectDimensionFromLeftEdge(gSaveContext.timerX[svar6]);
+-                    svar5 = OTRGetRectDimensionFromLeftEdge(gSaveContext.timerX[svar6]); 
 +                    svar5 = OTRGetRectDimensionFromLeftEdge(gSaveContext.timerX[svar6]);
                      OVERLAY_DISP = Gfx_TextureI8(OVERLAY_DISP, digitTextures[timerDigits[svar1]], 8, 16,
                                        svar5 + timerDigitLeftPos[svar1],
