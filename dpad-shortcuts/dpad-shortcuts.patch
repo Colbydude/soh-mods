@@ -1,8 +1,8 @@
 diff --git a/libultraship/libultraship/SohImGuiImpl.cpp b/libultraship/libultraship/SohImGuiImpl.cpp
-index 1d9927c..bc0c963 100644
+index af50661..ea219b1 100644
 --- a/libultraship/libultraship/SohImGuiImpl.cpp
 +++ b/libultraship/libultraship/SohImGuiImpl.cpp
-@@ -84,7 +84,7 @@ namespace SohImGui {
+@@ -85,7 +85,7 @@ namespace SohImGui {
              ImGui_ImplWin32_Init(impl.dx11.window);
              break;
          }
@@ -11,7 +11,7 @@ index 1d9927c..bc0c963 100644
          // OTRTODO: This gameplay specific stuff should not be in libultraship. This needs to be moved to soh and use sTunicColors
          kokiri_col[0] = 30 / 255.0f;
          kokiri_col[1] = 105 / 255.0f;
-@@ -93,7 +93,7 @@ namespace SohImGui {
+@@ -94,7 +94,7 @@ namespace SohImGui {
          goron_col[0] = 100 / 255.0f;
          goron_col[1] = 20 / 255.0f;
          goron_col[2] = 0;
@@ -20,7 +20,7 @@ index 1d9927c..bc0c963 100644
          zora_col[0] = 0;
          zora_col[1] = 60 / 255.0f;
          zora_col[2] = 100 / 255.0f;
-@@ -333,7 +333,7 @@ namespace SohImGui {
+@@ -334,7 +334,7 @@ namespace SohImGui {
  
  #define BindButton(btn, status) ImGui::Image(GetTextureByID(DefaultAssets[btn]->textureId), ImVec2(16.0f * scale, 16.0f * scale), ImVec2(0, 0), ImVec2(1.0f, 1.0f), ImVec4(255, 255, 255, (status) ? 255 : 0));
  
@@ -29,7 +29,7 @@ index 1d9927c..bc0c963 100644
      {
          float value = CVar_GetFloat(key, defaultValue);
  
-@@ -361,7 +361,7 @@ namespace SohImGui {
+@@ -380,7 +380,7 @@ namespace SohImGui {
  
          ImGui::Text(text.c_str(), val);
  
@@ -38,7 +38,7 @@ index 1d9927c..bc0c963 100644
          {
              CVar_SetS32(cvarName.c_str(), val);
              needs_save = true;
-@@ -424,7 +424,7 @@ namespace SohImGui {
+@@ -443,7 +443,7 @@ namespace SohImGui {
          colors[2] = b / 255.0f;
  
          {
@@ -47,7 +47,7 @@ index 1d9927c..bc0c963 100644
              {
                  CVar_SetS32((cvarName + "_Red").c_str(), (int)(colors[0] * 255));
                  CVar_SetS32((cvarName + "_Green").c_str(), (int)(colors[1] * 255));
-@@ -557,6 +557,8 @@ namespace SohImGui {
+@@ -577,6 +577,8 @@ namespace SohImGui {
                  EnhancementCheckbox("MM Bunny Hood", "gMMBunnyHood");
                  EnhancementCheckbox("Visual Stone of Agony", "gVisualAgony");
  
@@ -118,10 +118,10 @@ index a8455a4..feb71ce 100644
 +</Project>
 diff --git a/soh/soh/Enhancements/dpad.c b/soh/soh/Enhancements/dpad.c
 new file mode 100644
-index 0000000..69ea6f8
+index 0000000..ad41b1a
 --- /dev/null
 +++ b/soh/soh/Enhancements/dpad.c
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,121 @@
 +
 +#include "dpad.h"
 +
@@ -150,6 +150,10 @@ index 0000000..69ea6f8
 +    Player* player = GET_PLAYER(gGlobalCtx);
 +
 +    if (!CAN_USE_DPAD || !DISPLAY_DPAD || CVar_GetS32("gDPadShortcuts", 0) == 0)
++        return;
++
++    // Don't allow toggling from the pause menu if DPad Support is enabled for pause/file select.
++    if (gGlobalCtx->pauseCtx.state != 0 && CVar_GetS32("gDpadPauseName", 0) == 1)
 +        return;
 +
 +    // Boots shortcuts.
