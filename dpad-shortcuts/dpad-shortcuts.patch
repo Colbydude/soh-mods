@@ -1,53 +1,8 @@
 diff --git a/libultraship/libultraship/SohImGuiImpl.cpp b/libultraship/libultraship/SohImGuiImpl.cpp
-index af50661..ea219b1 100644
+index 785a29d..bff3fc3 100644
 --- a/libultraship/libultraship/SohImGuiImpl.cpp
 +++ b/libultraship/libultraship/SohImGuiImpl.cpp
-@@ -85,7 +85,7 @@ namespace SohImGui {
-             ImGui_ImplWin32_Init(impl.dx11.window);
-             break;
-         }
--        
-+
-         // OTRTODO: This gameplay specific stuff should not be in libultraship. This needs to be moved to soh and use sTunicColors
-         kokiri_col[0] = 30 / 255.0f;
-         kokiri_col[1] = 105 / 255.0f;
-@@ -94,7 +94,7 @@ namespace SohImGui {
-         goron_col[0] = 100 / 255.0f;
-         goron_col[1] = 20 / 255.0f;
-         goron_col[2] = 0;
--        
-+
-         zora_col[0] = 0;
-         zora_col[1] = 60 / 255.0f;
-         zora_col[2] = 100 / 255.0f;
-@@ -334,7 +334,7 @@ namespace SohImGui {
- 
- #define BindButton(btn, status) ImGui::Image(GetTextureByID(DefaultAssets[btn]->textureId), ImVec2(16.0f * scale, 16.0f * scale), ImVec2(0, 0), ImVec2(1.0f, 1.0f), ImVec4(255, 255, 255, (status) ? 255 : 0));
- 
--    void BindAudioSlider(const char* name, const char* key, float defaultValue, SeqPlayers playerId) 
-+    void BindAudioSlider(const char* name, const char* key, float defaultValue, SeqPlayers playerId)
-     {
-         float value = CVar_GetFloat(key, defaultValue);
- 
-@@ -380,7 +380,7 @@ namespace SohImGui {
- 
-         ImGui::Text(text.c_str(), val);
- 
--        if (ImGui::SliderInt(id.c_str(), &val, min, max, format.c_str())) 
-+        if (ImGui::SliderInt(id.c_str(), &val, min, max, format.c_str()))
-         {
-             CVar_SetS32(cvarName.c_str(), val);
-             needs_save = true;
-@@ -443,7 +443,7 @@ namespace SohImGui {
-         colors[2] = b / 255.0f;
- 
-         {
--            if (ImGui::ColorEdit3(text.c_str(), colors)) 
-+            if (ImGui::ColorEdit3(text.c_str(), colors))
-             {
-                 CVar_SetS32((cvarName + "_Red").c_str(), (int)(colors[0] * 255));
-                 CVar_SetS32((cvarName + "_Green").c_str(), (int)(colors[1] * 255));
-@@ -577,6 +577,8 @@ namespace SohImGui {
+@@ -663,6 +663,8 @@ namespace SohImGui {
                  EnhancementCheckbox("MM Bunny Hood", "gMMBunnyHood");
                  EnhancementCheckbox("Visual Stone of Agony", "gVisualAgony");
  
@@ -57,33 +12,40 @@ index af50661..ea219b1 100644
                  ImGui::Separator();
  
 diff --git a/soh/soh.vcxproj b/soh/soh.vcxproj
-index 2bd4380..c1299e0 100644
+index 0a20061..e4d4b76 100644
 --- a/soh/soh.vcxproj
 +++ b/soh/soh.vcxproj
-@@ -179,7 +179,9 @@
+@@ -180,7 +180,9 @@
      <ClCompile Include="soh\Enhancements\debugger\debugger.cpp" />
      <ClCompile Include="soh\Enhancements\debugger\debugSaveEditor.cpp" />
      <ClCompile Include="soh\Enhancements\debugger\ImGuiHelpers.cpp" />
 +    <ClCompile Include="soh\Enhancements\dpad.c" />
      <ClCompile Include="soh\Enhancements\gameconsole.c" />
 +    <ClCompile Include="soh\Enhancements\gfx.c" />
+     <ClCompile Include="soh\Enhancements\savestates.cpp" />
      <ClCompile Include="soh\GbiWrap.cpp" />
      <ClCompile Include="soh\gu_pc.c" />
-     <ClCompile Include="soh\OTRGlobals.cpp" />
-@@ -928,6 +930,8 @@
+@@ -932,6 +934,8 @@
      <ClInclude Include="soh\Enhancements\debugger\debugger.h" />
      <ClInclude Include="soh\Enhancements\debugger\debugSaveEditor.h" />
      <ClInclude Include="soh\Enhancements\debugger\ImGuiHelpers.h" />
 +    <ClInclude Include="soh\Enhancements\dpad.h" />
 +    <ClInclude Include="soh\Enhancements\gfx.h" />
      <ClInclude Include="soh\gameconsole.h" />
+     <ClInclude Include="soh\OTRAudio.h" />
      <ClInclude Include="soh\OTRGlobals.h" />
-     <ClInclude Include="soh\util.h" />
+@@ -1413,4 +1417,4 @@
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+   <ImportGroup Label="ExtensionTargets">
+   </ImportGroup>
+-</Project>
+\ No newline at end of file
++</Project>
 diff --git a/soh/soh.vcxproj.filters b/soh/soh.vcxproj.filters
-index a8455a4..feb71ce 100644
+index 04f6030..8f8a1d6 100644
 --- a/soh/soh.vcxproj.filters
 +++ b/soh/soh.vcxproj.filters
-@@ -2181,6 +2181,12 @@
+@@ -2178,6 +2178,12 @@
      <ClCompile Include="soh\Enhancements\debugger\debugSaveEditor.cpp">
        <Filter>Source Files\soh\Enhancements\debugger</Filter>
      </ClCompile>
@@ -96,7 +58,7 @@ index a8455a4..feb71ce 100644
      <ClCompile Include="soh\util.cpp">
        <Filter>Source Files\soh</Filter>
      </ClCompile>
-@@ -3737,6 +3743,12 @@
+@@ -3742,6 +3748,12 @@
      <ClInclude Include="soh\Enhancements\debugger\debugSaveEditor.h">
        <Filter>Header Files\soh\Enhancements\debugger</Filter>
      </ClInclude>
@@ -109,7 +71,7 @@ index a8455a4..feb71ce 100644
      <ClInclude Include="soh\util.h">
        <Filter>Header Files\soh</Filter>
      </ClInclude>
-@@ -3762,4 +3774,4 @@
+@@ -3775,4 +3787,4 @@
        <Filter>Resource Files</Filter>
      </Image>
    </ItemGroup>
