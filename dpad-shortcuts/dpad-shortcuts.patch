@@ -1,16 +1,53 @@
 diff --git a/libultraship/libultraship/SohImGuiImpl.cpp b/libultraship/libultraship/SohImGuiImpl.cpp
-index 785a29d..bff3fc3 100644
+index 3c3ca9c..821d686 100644
 --- a/libultraship/libultraship/SohImGuiImpl.cpp
 +++ b/libultraship/libultraship/SohImGuiImpl.cpp
-@@ -663,6 +663,8 @@ namespace SohImGui {
-                 EnhancementCheckbox("MM Bunny Hood", "gMMBunnyHood");
-                 EnhancementCheckbox("Visual Stone of Agony", "gVisualAgony");
+@@ -96,7 +96,7 @@ namespace SohImGui {
+         "gCCHeartsPrim","gDDCCHeartsPrim",
+         "gCCABtnPrim","gCCBBtnPrim","gCCCBtnPrim","gCCStartBtnPrim",
+         "gCCMagicBorderPrim","gCCMagicPrim","gCCMagicUsePrim",
+-        "gCCMinimapPrim","gCCRupeePrim","gCCKeysPrim"        
++        "gCCMinimapPrim","gCCRupeePrim","gCCKeysPrim"
+     };
  
-+                EnhancementCheckbox("DPad Shortcuts", "gDPadShortcuts");
+     const char* filters[3] = {
+@@ -283,7 +283,7 @@ namespace SohImGui {
+             u8 i = current_hue / 60 + 1;
+             u8 a = (-current_hue / 60.0f + i) * 255;
+             u8 b = (current_hue / 60.0f + (1 - i)) * 255;
+-            
 +
-                 ImGui::Text("Graphics");
-                 ImGui::Separator();
+             switch (i) {
+                 case 1: NewColor.x = 255; NewColor.y = b; NewColor.z = 0; break;
+                 case 2: NewColor.x = a; NewColor.y = 255; NewColor.z = 0; break;
+@@ -450,7 +450,7 @@ namespace SohImGui {
+         std::string make_invisible = "##";
+         make_invisible += text;
+         make_invisible += cvarName;
+-        
++
+         int val = CVar_GetS32(cvarName, 0);
+         if (ImGui::RadioButton(make_invisible.c_str(), id == val)) {
+             CVar_SetS32(cvarName, id);
+@@ -856,6 +856,9 @@ namespace SohImGui {
+                     Tooltip("The default response to Kaepora Gaebora is always that you understood what he said");
+                     EnhancementCheckbox("Disable Navi Call Audio", "gDisableNaviCallAudio");
+                     Tooltip("Disables the voice audio when Navi calls you");
++                    EnhancementCheckbox("DPad Shortcuts", "gDPadShortcuts");
++                    Tooltip("Allows toggling boots and using the Ocarina from the DPad.");
++
+                     ImGui::EndMenu();
+                 }
  
+@@ -898,7 +901,7 @@ namespace SohImGui {
+                         if (CVar_GetS32("gPauseLiveLink", 0) >= 16) {
+                             EnhancementSliderInt("Frame to wait: %d", "##MinFrameCount", "gMinFrameCount", 1, 1000, "");
+                         }
+-                        
++
+                         ImGui::EndMenu();
+                     }
+                     EnhancementCheckbox("N64 Mode", "gN64Mode");
 diff --git a/soh/soh.vcxproj b/soh/soh.vcxproj
 index 0a20061..e4d4b76 100644
 --- a/soh/soh.vcxproj
@@ -354,7 +391,7 @@ index 0000000..e4fb27c
 +
 +#endif
 diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
-index edc4348..0957008 100644
+index a9e9e4f..6882b5e 100644
 --- a/soh/src/code/z_parameter.c
 +++ b/soh/src/code/z_parameter.c
 @@ -3,6 +3,7 @@
@@ -365,34 +402,62 @@ index edc4348..0957008 100644
  
  #ifdef _MSC_VER
  #include <stdlib.h>
-@@ -2797,7 +2798,7 @@ void Interface_DrawItemButtons(GlobalContext* globalCtx) {
-             gDPPipeSync(OVERLAY_DISP++);
-             gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 120, 120, 120, interfaceCtx->startAlpha);
-             gSPWideTextureRectangle(OVERLAY_DISP++, OTRGetRectDimensionFromRightEdge(startButtonLeftPos[gSaveContext.language]) << 2, 68,
--                                (OTRGetRectDimensionFromRightEdge(startButtonLeftPos[gSaveContext.language]) + 22) << 2, 156, 
-+                                (OTRGetRectDimensionFromRightEdge(startButtonLeftPos[gSaveContext.language]) + 22) << 2, 156,
-                                 G_TX_RENDERTILE, 0, 0, 1462, 1462);
-             gDPPipeSync(OVERLAY_DISP++);
-             gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 255, 255, 255, interfaceCtx->startAlpha);
-@@ -2878,7 +2879,7 @@ void Interface_DrawItemButtons(GlobalContext* globalCtx) {
-                                 interfaceCtx->cRightAlpha);
-             }
+@@ -2164,7 +2165,7 @@ void Interface_SetNaviCall(GlobalContext* globalCtx, u16 naviCallState) {
  
+     if (((naviCallState == 0x1D) || (naviCallState == 0x1E)) && !interfaceCtx->naviCalling &&
+         (globalCtx->csCtx.state == CS_STATE_IDLE)) {
+-        if (!CVar_GetS32("gDisableNaviCallAudio", 0)) {            
++        if (!CVar_GetS32("gDisableNaviCallAudio", 0)) {
+             // clang-format off
+             if (naviCallState == 0x1E) { Audio_PlaySoundGeneral(NA_SE_VO_NAVY_CALL, &D_801333D4, 4,
+                                                                 &D_801333E0, &D_801333E0, &D_801333E8); }
+@@ -2869,6 +2870,7 @@ void Interface_DrawItemButtons(GlobalContext* globalCtx) {
+         if ((globalCtx->pauseCtx.state != 0) || (globalCtx->pauseCtx.debugState != 0)) {
+             // Start Button Texture, Color & Label
+             gDPPipeSync(OVERLAY_DISP++);
++
+             if (CVar_GetS32("gHudColors", 1) == 0) {
+                 gDPSetPrimColor(OVERLAY_DISP++, 0, 0, 200, 0, 0, interfaceCtx->startAlpha);
+             } else if (CVar_GetS32("gHudColors", 1) == 1) {
+@@ -2884,7 +2886,7 @@ void Interface_DrawItemButtons(GlobalContext* globalCtx) {
+             gDPSetEnvColor(OVERLAY_DISP++, 0, 0, 0, 0);
+             gDPSetCombineLERP(OVERLAY_DISP++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0,
+                               PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
+-            
++
+             //There is probably a more elegant way to do it.
+             char* doAction = actionsTbl[3];
+             char newName[512];
+@@ -2903,7 +2905,7 @@ void Interface_DrawItemButtons(GlobalContext* globalCtx) {
+                 doAction = newName;
+             }
+             memcpy(interfaceCtx->doActionSegment + DO_ACTION_TEX_SIZE * 2, ResourceMgr_LoadTexByName(doAction), DO_ACTION_TEX_SIZE);
+-            
++
+             gDPLoadTextureBlock_4b(OVERLAY_DISP++, interfaceCtx->doActionSegment + DO_ACTION_TEX_SIZE * 2, G_IM_FMT_IA,
+                                    DO_ACTION_TEX_WIDTH, DO_ACTION_TEX_HEIGHT, 0, G_TX_NOMIRROR | G_TX_WRAP,
+                                    G_TX_NOMIRROR | G_TX_WRAP, G_TX_NOMASK, G_TX_NOMASK, G_TX_NOLOD, G_TX_NOLOD);
+@@ -2987,8 +2989,8 @@ void Interface_DrawItemButtons(GlobalContext* globalCtx) {
+                 //This later will feature color per C button right now that it.
+                 gDPSetPrimColor(OVERLAY_DISP++, 0, 0, CVar_GetS32("gCCCBtnPrimR", R_C_BTN_COLOR(0)), CVar_GetS32("gCCCBtnPrimG", R_C_BTN_COLOR(1)), CVar_GetS32("gCCCBtnPrimB", R_C_BTN_COLOR(2)), interfaceCtx->cRightAlpha);
+             }
+-            
 -            OVERLAY_DISP = Gfx_TextureIA8(OVERLAY_DISP, ((u8*)gButtonBackgroundTex), 32, 32, 
++
 +            OVERLAY_DISP = Gfx_TextureIA8(OVERLAY_DISP, ((u8*)gButtonBackgroundTex), 32, 32,
-                                           OTRGetRectDimensionFromRightEdge(R_ITEM_BTN_X(temp)), R_ITEM_BTN_Y(temp), R_ITEM_BTN_WIDTH(temp),
+                                           OTRGetRectDimensionFromRightEdge(R_ITEM_BTN_X(temp)+Right_HUD_Margin), R_ITEM_BTN_Y(temp)+(Top_HUD_Margin*-1), R_ITEM_BTN_WIDTH(temp),
                                            R_ITEM_BTN_WIDTH(temp), R_ITEM_BTN_DD(temp) << 1, R_ITEM_BTN_DD(temp) << 1);
  
-@@ -2963,7 +2964,7 @@ void Interface_DrawAmmoCount(GlobalContext* globalCtx, s16 button, s16 alpha) {
+@@ -3073,7 +3075,7 @@ void Interface_DrawAmmoCount(GlobalContext* globalCtx, s16 button, s16 alpha) {
          }
  
          if (i != 0) {
 -            OVERLAY_DISP = Gfx_TextureIA8(OVERLAY_DISP, (u8*)_gAmmoDigit0Tex[i], 8, 8, 
 +            OVERLAY_DISP = Gfx_TextureIA8(OVERLAY_DISP, (u8*)_gAmmoDigit0Tex[i], 8, 8,
-                                           OTRGetRectDimensionFromRightEdge(R_ITEM_AMMO_X(button)), R_ITEM_AMMO_Y(button), 8, 8, 1 << 10, 1 << 10);
+                                           OTRGetRectDimensionFromRightEdge(R_ITEM_AMMO_X(button)+Right_HUD_Margin), R_ITEM_AMMO_Y(button)+(Top_HUD_Margin*-1), 8, 8, 1 << 10, 1 << 10);
          }
  
-@@ -3306,6 +3307,7 @@ void Interface_Draw(GlobalContext* globalCtx) {
+@@ -3428,6 +3430,7 @@ void Interface_Draw(GlobalContext* globalCtx) {
  
          if (fullUi) {
              Interface_DrawItemButtons(globalCtx);
@@ -400,7 +465,7 @@ index edc4348..0957008 100644
          }
  
          gDPPipeSync(OVERLAY_DISP++);
-@@ -3322,11 +3324,11 @@ void Interface_Draw(GlobalContext* globalCtx) {
+@@ -3444,11 +3447,11 @@ void Interface_Draw(GlobalContext* globalCtx) {
  
                  if ((player->stateFlags1 & 0x00800000) || (globalCtx->shootingGalleryStatus > 1) ||
                      ((globalCtx->sceneNum == SCENE_BOWLING) && Flags_GetSwitch(globalCtx, 0x38))) {
@@ -414,7 +479,7 @@ index edc4348..0957008 100644
                      gDPPipeSync(OVERLAY_DISP++);
                      gDPSetCombineLERP(OVERLAY_DISP++, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE,
                                        0, PRIMITIVE, ENVIRONMENT, TEXEL0, ENVIRONMENT, TEXEL0, 0, PRIMITIVE, 0);
-@@ -3943,7 +3945,7 @@ void Interface_Draw(GlobalContext* globalCtx) {
+@@ -4070,7 +4073,7 @@ void Interface_Draw(GlobalContext* globalCtx) {
  
                  for (svar1 = 0; svar1 < 5; svar1++) {
                      // clang-format off
@@ -423,7 +488,7 @@ index edc4348..0957008 100644
                      OVERLAY_DISP = Gfx_TextureI8(OVERLAY_DISP, digitTextures[timerDigits[svar1]], 8, 16,
                                        svar5 + timerDigitLeftPos[svar1],
                                        svar2 = gSaveContext.timerY[svar6], digitWidth[svar1], VREG(42), VREG(43) << 1,
-@@ -4338,4 +4340,6 @@ void Interface_Update(GlobalContext* globalCtx) {
+@@ -4477,4 +4480,6 @@ void Interface_Update(GlobalContext* globalCtx) {
              gSaveContext.sunsSongState = SUNSSONG_SPECIAL;
          }
      }
