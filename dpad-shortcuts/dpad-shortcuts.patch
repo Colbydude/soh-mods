@@ -1,5 +1,5 @@
 diff --git a/libultraship/libultraship/SohImGuiImpl.cpp b/libultraship/libultraship/SohImGuiImpl.cpp
-index 3c3ca9c..821d686 100644
+index f7b8d6b..a1f50b7 100644
 --- a/libultraship/libultraship/SohImGuiImpl.cpp
 +++ b/libultraship/libultraship/SohImGuiImpl.cpp
 @@ -96,7 +96,7 @@ namespace SohImGui {
@@ -11,7 +11,7 @@ index 3c3ca9c..821d686 100644
      };
  
      const char* filters[3] = {
-@@ -283,7 +283,7 @@ namespace SohImGui {
+@@ -284,7 +284,7 @@ namespace SohImGui {
              u8 i = current_hue / 60 + 1;
              u8 a = (-current_hue / 60.0f + i) * 255;
              u8 b = (current_hue / 60.0f + (1 - i)) * 255;
@@ -20,7 +20,7 @@ index 3c3ca9c..821d686 100644
              switch (i) {
                  case 1: NewColor.x = 255; NewColor.y = b; NewColor.z = 0; break;
                  case 2: NewColor.x = a; NewColor.y = 255; NewColor.z = 0; break;
-@@ -450,7 +450,7 @@ namespace SohImGui {
+@@ -473,7 +473,7 @@ namespace SohImGui {
          std::string make_invisible = "##";
          make_invisible += text;
          make_invisible += cvarName;
@@ -29,17 +29,16 @@ index 3c3ca9c..821d686 100644
          int val = CVar_GetS32(cvarName, 0);
          if (ImGui::RadioButton(make_invisible.c_str(), id == val)) {
              CVar_SetS32(cvarName, id);
-@@ -856,6 +856,9 @@ namespace SohImGui {
-                     Tooltip("The default response to Kaepora Gaebora is always that you understood what he said");
-                     EnhancementCheckbox("Disable Navi Call Audio", "gDisableNaviCallAudio");
+@@ -870,6 +870,8 @@ namespace SohImGui {
                      Tooltip("Disables the voice audio when Navi calls you");
+                     EnhancementCheckbox("Link's Cow in Both Time Periods", "gCowOfTime");
+                     Tooltip("Allows the Lon Lon Ranch obstacle course reward to be shared across time periods");
 +                    EnhancementCheckbox("DPad Shortcuts", "gDPadShortcuts");
 +                    Tooltip("Allows toggling boots and using the Ocarina from the DPad.");
-+
                      ImGui::EndMenu();
                  }
  
-@@ -898,7 +901,7 @@ namespace SohImGui {
+@@ -912,7 +914,7 @@ namespace SohImGui {
                          if (CVar_GetS32("gPauseLiveLink", 0) >= 16) {
                              EnhancementSliderInt("Frame to wait: %d", "##MinFrameCount", "gMinFrameCount", 1, 1000, "");
                          }
@@ -48,6 +47,13 @@ index 3c3ca9c..821d686 100644
                          ImGui::EndMenu();
                      }
                      EnhancementCheckbox("N64 Mode", "gN64Mode");
+@@ -1391,4 +1393,4 @@ namespace SohImGui {
+ #endif
+         return reinterpret_cast<ImTextureID>(id);
+     }
+-}
+\ No newline at end of file
++}
 diff --git a/soh/soh.vcxproj b/soh/soh.vcxproj
 index 0a20061..e4d4b76 100644
 --- a/soh/soh.vcxproj
@@ -244,10 +250,10 @@ index 0000000..ad41b1a
 +}
 diff --git a/soh/soh/Enhancements/dpad.h b/soh/soh/Enhancements/dpad.h
 new file mode 100644
-index 0000000..9a97a17
+index 0000000..71c4ec4
 --- /dev/null
 +++ b/soh/soh/Enhancements/dpad.h
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,44 @@
 +#ifndef DPAD_ENHANCEMENT_H
 +#define DPAD_ENHANCEMENT_H
 +
@@ -287,12 +293,6 @@ index 0000000..9a97a17
 +                            (INV_CONTENT(ITEM_OCARINA_FAIRY) == ITEM_OCARINA_FAIRY || INV_CONTENT(ITEM_OCARINA_FAIRY) == ITEM_OCARINA_TIME) && \
 +                            !gGlobalCtx->interfaceCtx.restrictions.ocarina && \
 +                            ((GET_PLAYER(gGlobalCtx)->stateFlags1 & BLOCK_OCARINA) == 0))
-+
-+sprite_t sprDPad;
-+sprite_t sprFairyOcarina;
-+sprite_t sprHoverBoots;
-+sprite_t sprIronBoots;
-+sprite_t sprOcarinaOfTime;
 +
 +void handle_dpad();
 +void draw_dpad();
@@ -391,7 +391,7 @@ index 0000000..e4fb27c
 +
 +#endif
 diff --git a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
-index a9e9e4f..6882b5e 100644
+index 14d6772..6d566c6 100644
 --- a/soh/src/code/z_parameter.c
 +++ b/soh/src/code/z_parameter.c
 @@ -3,6 +3,7 @@
