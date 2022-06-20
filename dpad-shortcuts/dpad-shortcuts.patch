@@ -1,64 +1,62 @@
 diff --git a/libultraship/libultraship/SohImGuiImpl.cpp b/libultraship/libultraship/SohImGuiImpl.cpp
-index f7b8d6b..a1f50b7 100644
+index 1bdd2b8..c8dcb72 100644
 --- a/libultraship/libultraship/SohImGuiImpl.cpp
 +++ b/libultraship/libultraship/SohImGuiImpl.cpp
-@@ -96,7 +96,7 @@ namespace SohImGui {
-         "gCCHeartsPrim","gDDCCHeartsPrim",
-         "gCCABtnPrim","gCCBBtnPrim","gCCCBtnPrim","gCCStartBtnPrim",
-         "gCCMagicBorderPrim","gCCMagicPrim","gCCMagicUsePrim",
--        "gCCMinimapPrim","gCCRupeePrim","gCCKeysPrim"        
-+        "gCCMinimapPrim","gCCRupeePrim","gCCKeysPrim"
-     };
+@@ -561,7 +561,7 @@ namespace SohImGui {
+     }
  
-     const char* filters[3] = {
-@@ -284,7 +284,7 @@ namespace SohImGui {
-             u8 i = current_hue / 60 + 1;
-             u8 a = (-current_hue / 60.0f + i) * 255;
-             u8 b = (current_hue / 60.0f + (1 - i)) * 255;
+     void EnhancementCombo(const std::string& name, const char* cvarName, const std::vector<std::string>& items, int defaultValue) {
+-      
++
+         if (ImGui::BeginCombo(name.c_str(), items[static_cast<int>(CVar_GetS32(cvarName, defaultValue))].c_str())) {
+             for (int settingIndex = 0; settingIndex < (int) items.size(); settingIndex++) {
+                 if (ImGui::Selectable(items[settingIndex].c_str())) {
+@@ -690,7 +690,7 @@ namespace SohImGui {
+         ImGui::SameLine();
+         RandomizeColor(cvarName, &ColorRGBA);
+         if (allow_rainbow) {
 -            
 +
-             switch (i) {
-                 case 1: NewColor.x = 255; NewColor.y = b; NewColor.z = 0; break;
-                 case 2: NewColor.x = a; NewColor.y = 255; NewColor.z = 0; break;
-@@ -473,7 +473,7 @@ namespace SohImGui {
-         std::string make_invisible = "##";
-         make_invisible += text;
-         make_invisible += cvarName;
--        
+             if (ImGui::GetWindowSize().x > 560) {
+                 ImGui::SameLine();
+             }
+@@ -740,7 +740,7 @@ namespace SohImGui {
+         ImGui::DockSpace(dockId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+ 
+         ImGuiIO& io = ImGui::GetIO();
+-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad; 
++	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+         if ((ImGui::IsKeyPressed(TOGGLE_BTN)) || (ImGui::IsKeyDown(TOGGLE_PAD_BTN))) {
+             bool menu_bar = CVar_GetS32("gOpenMenuBar", 0);
+             CVar_SetS32("gOpenMenuBar", !menu_bar);
+@@ -783,10 +783,10 @@ namespace SohImGui {
+                 EnhancementCheckbox("Rumble Enabled", "gRumbleEnabled");
+ 
+                 EnhancementSliderFloat("Input Scale: %.1f", "##Input", "gInputScale", 1.0f, 3.0f, "", 1.0f, false);
+-                Tooltip("Sets the on screen size of the displayed inputs from Show Inputs");  
++                Tooltip("Sets the on screen size of the displayed inputs from Show Inputs");
 +
-         int val = CVar_GetS32(cvarName, 0);
-         if (ImGui::RadioButton(make_invisible.c_str(), id == val)) {
-             CVar_SetS32(cvarName, id);
-@@ -870,6 +870,8 @@ namespace SohImGui {
-                     Tooltip("Disables the voice audio when Navi calls you");
++		ImGui::Separator();
+ 
+-		ImGui::Separator();  
+-		    
+                 for (const auto& [i, controllers] : Ship::Window::Controllers)
+                 {
+                     bool hasPad = std::find_if(controllers.begin(), controllers.end(), [](const auto& c) {
+@@ -913,6 +913,8 @@ namespace SohImGui {
+                     Tooltip("The default response to Kaepora Gaebora is always that you understood what he said");
                      EnhancementCheckbox("Link's Cow in Both Time Periods", "gCowOfTime");
                      Tooltip("Allows the Lon Lon Ranch obstacle course reward to be shared across time periods");
 +                    EnhancementCheckbox("DPad Shortcuts", "gDPadShortcuts");
 +                    Tooltip("Allows toggling boots and using the Ocarina from the DPad.");
+                     EnhancementCheckbox("Enable visible guard vision", "gGuardVision");
+                     EnhancementCheckbox("Enable passage of time on file select", "gTimeFlowFileSelect");
                      ImGui::EndMenu();
-                 }
- 
-@@ -912,7 +914,7 @@ namespace SohImGui {
-                         if (CVar_GetS32("gPauseLiveLink", 0) >= 16) {
-                             EnhancementSliderInt("Frame to wait: %d", "##MinFrameCount", "gMinFrameCount", 1, 1000, "");
-                         }
--                        
-+
-                         ImGui::EndMenu();
-                     }
-                     EnhancementCheckbox("N64 Mode", "gN64Mode");
-@@ -1391,4 +1393,4 @@ namespace SohImGui {
- #endif
-         return reinterpret_cast<ImTextureID>(id);
-     }
--}
-\ No newline at end of file
-+}
 diff --git a/soh/soh.vcxproj b/soh/soh.vcxproj
-index 0a20061..e4d4b76 100644
+index 75ed13b..b370ae0 100644
 --- a/soh/soh.vcxproj
 +++ b/soh/soh.vcxproj
-@@ -180,7 +180,9 @@
+@@ -181,7 +181,9 @@
      <ClCompile Include="soh\Enhancements\debugger\debugger.cpp" />
      <ClCompile Include="soh\Enhancements\debugger\debugSaveEditor.cpp" />
      <ClCompile Include="soh\Enhancements\debugger\ImGuiHelpers.cpp" />
@@ -68,16 +66,16 @@ index 0a20061..e4d4b76 100644
      <ClCompile Include="soh\Enhancements\savestates.cpp" />
      <ClCompile Include="soh\GbiWrap.cpp" />
      <ClCompile Include="soh\gu_pc.c" />
-@@ -932,6 +934,8 @@
+@@ -935,6 +937,8 @@
      <ClInclude Include="soh\Enhancements\debugger\debugger.h" />
      <ClInclude Include="soh\Enhancements\debugger\debugSaveEditor.h" />
      <ClInclude Include="soh\Enhancements\debugger\ImGuiHelpers.h" />
 +    <ClInclude Include="soh\Enhancements\dpad.h" />
 +    <ClInclude Include="soh\Enhancements\gfx.h" />
      <ClInclude Include="soh\gameconsole.h" />
+     <ClInclude Include="soh\Lib\nlohmann\json.hpp" />
      <ClInclude Include="soh\OTRAudio.h" />
-     <ClInclude Include="soh\OTRGlobals.h" />
-@@ -1413,4 +1417,4 @@
+@@ -1418,4 +1422,4 @@
    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
    <ImportGroup Label="ExtensionTargets">
    </ImportGroup>
@@ -85,10 +83,10 @@ index 0a20061..e4d4b76 100644
 \ No newline at end of file
 +</Project>
 diff --git a/soh/soh.vcxproj.filters b/soh/soh.vcxproj.filters
-index 04f6030..8f8a1d6 100644
+index f72817c..d781162 100644
 --- a/soh/soh.vcxproj.filters
 +++ b/soh/soh.vcxproj.filters
-@@ -2178,6 +2178,12 @@
+@@ -2184,6 +2184,12 @@
      <ClCompile Include="soh\Enhancements\debugger\debugSaveEditor.cpp">
        <Filter>Source Files\soh\Enhancements\debugger</Filter>
      </ClCompile>
@@ -101,7 +99,7 @@ index 04f6030..8f8a1d6 100644
      <ClCompile Include="soh\util.cpp">
        <Filter>Source Files\soh</Filter>
      </ClCompile>
-@@ -3742,6 +3748,12 @@
+@@ -3755,6 +3761,12 @@
      <ClInclude Include="soh\Enhancements\debugger\debugSaveEditor.h">
        <Filter>Header Files\soh\Enhancements\debugger</Filter>
      </ClInclude>
@@ -114,9 +112,9 @@ index 04f6030..8f8a1d6 100644
      <ClInclude Include="soh\util.h">
        <Filter>Header Files\soh</Filter>
      </ClInclude>
-@@ -3775,4 +3787,4 @@
-       <Filter>Resource Files</Filter>
-     </Image>
+@@ -3789,4 +3801,4 @@
+   <ItemGroup>
+     <None Include="include\macro.inc" />
    </ItemGroup>
 -</Project>
 \ No newline at end of file
